@@ -1,6 +1,13 @@
 require 'ceedling/plugin'
 require 'ceedling/constants'
 require 'gcov_constants'
+require 'reportgenerator_reportinator'
+require 'gcovr_reportinator'
+
+# Report Creation Utilities
+UTILITY_NAME_GCOVR = "gcovr"
+UTILITY_NAME_REPORT_GENERATOR = "ReportGenerator"
+UTILITY_NAMES = [UTILITY_NAME_GCOVR, UTILITY_NAME_REPORT_GENERATOR]
 
 class Gcov < Plugin
   attr_reader :config
@@ -19,6 +26,8 @@ class Gcov < Plugin
 
     @plugin_root = File.expand_path(File.join(File.dirname(__FILE__), '..'))
     @coverage_template_all = @ceedling[:file_wrapper].read(File.join(@plugin_root, 'assets/template.erb'))
+    @gcovr_reportinator = GcovrReportinator.new(@ceedling)
+    @reportgenerator_reportinator = ReportGeneratorReportinator.new(@ceedling)
   end
 
   def generate_coverage_object_file(source, object)
@@ -76,7 +85,45 @@ class Gcov < Plugin
     @ceedling[:plugin_reportinator].run_test_results_report(hash)
   end
 
+  def generate_final_reports
+    # Get the gcov options from project.yml.
+    opts = @ceedling[:configurator].project_config_hash
+
+    # Create the artifacts output directory.
+    if !File.directory? GCOV_ARTIFACTS_PATH
+      FileUtils.mkdir_p GCOV_ARTIFACTS_PATH
+    end
+
+    # Remove unsupported reporting utilities.
+    if !(opts[:gcov_utilities].nil?)
+      opts[:gcov_utilities].reject! { |item| !(UTILITY_NAMES.map(&:upcase).include? item.upcase) }
+    end
+
+    # Default to gcovr when no reporting utilities are specified.
+    if opts[:gcov_utilities].nil? || opts[:gcov_utilities].empty?
+      opts[:gcov_utilities] = [UTILITY_NAME_GCOVR]
+    end
+
+    if opts[:gcov_reports].nil?
+      opts[:gcov_reports] = []
+    end
+
+    if is_utility_enabled(opts, UTILITY_NAME_GCOVR)
+      @gcovr_reportinator.support_deprecated_options(opts)
+      @gcovr_reportinator.make_reports(opts)
+    end
+
+    if is_utility_enabled(opts, UTILITY_NAME_REPORT_GENERATOR)
+      @reportgenerator_reportinator.make_reports(opts)
+    end
+  end
+
   private ###################################
+
+  # Returns true is the given utility is enabled, otherwise returns false.
+  def is_utility_enabled(opts, utility_name)
+    return !(opts.nil?) && !(opts[:gcov_utilities].nil?) && (opts[:gcov_utilities].map(&:upcase).include? utility_name.upcase)
+  end
 
   def report_per_file_coverage_results(sources)
     banner = @ceedling[:plugin_reportinator].generate_banner "#{GCOV_ROOT_NAME.upcase}: CODE COVERAGE SUMMARY"
