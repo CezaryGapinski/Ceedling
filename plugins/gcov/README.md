@@ -347,6 +347,12 @@ default behaviors of gcovr:
     # Set the number of threads to use in parallel. (gcovr -j).
     :num_parallel_threads: <num_threads>
 
+    # When the same source files must be recompiled during tests, previous coverage
+    # data are lost and only the newest compilation is included in the final reports.
+    # If this option is set to 'true' the intermediate coverages for recompiled 
+    # files are combined into final coverage.
+    :merge_coverages: false
+
   # When scanning the code coverage, if any files are found that do not have
   # associated coverage data, the command will abort with an error message.
   :abort_on_uncovered: true

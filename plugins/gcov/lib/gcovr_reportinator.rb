@@ -5,6 +5,10 @@ class GcovrReportinator
   def initialize(system_objects)
     @ceedling = system_objects
     @reportinator_helper = ReportinatorHelper.new
+    @merge_coverages_enabled = false
+    @intermediate_coverage_files = []
+    @use_generated_gcov_files = false
+    @current_coverage_step = 0
   end
 
 
@@ -15,10 +19,19 @@ class GcovrReportinator
 
     # Build the common gcovr arguments.
     args_common = args_builder_common(opts)
+    args = args_common
 
     if (gcovr_version_info[0] >= 4) && (gcovr_version_info[1] >= 2)
+      if @merge_coverages_enabled
+        summary_file = form_test_step_json_filepath('summary_report', @current_coverage_step)
+        print "Creating gcovr JSON summary report in: #{summary_file}\n"
+        STDOUT.flush
+        run(args_common + "--json-pretty --output #{summary_file}")
+        @intermediate_coverage_files << summary_file
+
+        args += args_builder_add_tracefiles(@intermediate_coverage_files)
+      end
       # gcovr version 4.2 and later supports generating multiple reports with a single call.
-      args = args_common
       args += args_builder_cobertura(opts, false)
       args += args_builder_sonarqube(opts, false)
       # Note: In gcovr 4.2, the JSON report is output only when the --output option is specified.
@@ -97,6 +110,38 @@ class GcovrReportinator
       puts "    - #{ReportTypes::JSON}"
       puts ""
     end
+  end
+
+
+  def check_merge_coverages_enable
+    opts = @ceedling[:configurator].project_config_hash
+    gcovr_opts = get_opts(opts)
+    if gcovr_opts[:merge_coverages]
+        # Get the gcovr version number.
+        gcovr_version_info = get_gcovr_version()
+        if (gcovr_version_info[0] >= 4) && (gcovr_version_info[1] >= 2)
+          @merge_coverages_enabled = true
+        else
+          @ceedling[:streaminator].stderr_puts("Gcovr >=4.2 required to merge intermediate results\n")
+          exit(-1)
+        end
+    end
+  end
+
+
+  def generate_intermediate_coverage(source, object)
+    if @merge_coverages_enabled && File.exist?(object.ext(GCOV_DATA_COUNT_EXTENSION))
+      result_file = form_test_step_json_filepath(source, @current_coverage_step)
+      @current_coverage_step = @current_coverage_step + 1
+      generate_intermediate_json(source, @use_generated_gcov_files, result_file)
+      @use_generated_gcov_files = true
+      @intermediate_coverage_files << result_file
+    end
+  end
+
+
+  def post_test_fixture_execute
+      @use_generated_gcov_files = false
   end
 
 
@@ -275,6 +320,36 @@ class GcovrReportinator
   # Get the gcovr options from the project options.
   def get_opts(opts)
     return opts[GCOVR_SETTING_PREFIX.to_sym] || {}
+  end
+
+  def args_builder_add_tracefiles(coverage_files)
+    args = coverage_files.map { |item| "--add-tracefile #{item} " }
+    return args.join(" ")
+  end
+
+
+  def generate_intermediate_json(source_file, use_generated_gcov, result_file)
+    # Get the gcov options from project.yml.
+    opts = @ceedling[:configurator].project_config_hash
+    args = args_builder_common(opts)
+    args += "--filter \"#{source_file}\" "
+    if use_generated_gcov
+      args += "--use-gcov-files "
+    else
+      args += "--keep "
+    end
+    args += "--json-pretty --output #{result_file} "
+
+    print "Creating JSON gcovr previous results for #{source_file} in: #{result_file}\n"
+    STDOUT.flush
+
+    run(args)
+  end
+
+
+  def form_test_step_json_filepath(filepath, step)
+    basename = File.basename(filepath, File.extname(filepath)) + '_step_' + step.to_s
+    return File.join( GCOV_BUILD_OUTPUT_PATH, basename.ext('.json') )
   end
 
 

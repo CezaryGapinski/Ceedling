@@ -31,7 +31,29 @@ class Gcov < Plugin
 
     # Cleanup any existing gcov data count files to avoid reporting old coverage results.
     Dir.glob("#{GCOV_BUILD_OUTPUT_PATH}/*#{GCOV_DATA_COUNT_EXTENSION}").each { |file| File.delete(file) }
+
+    # Get the gcov options from project.yml.
+    @opts = @ceedling[:configurator].project_config_hash
+
+    # Remove unsupported reporting utilities.
+    if !(@opts[:gcov_utilities].nil?)
+      @opts[:gcov_utilities].reject! { |item| !(UTILITY_NAMES.map(&:upcase).include? item.upcase) }
+    end
+
+    # Default to gcovr when no reporting utilities are specified.
+    if @opts[:gcov_utilities].nil? || @opts[:gcov_utilities].empty?
+      @opts[:gcov_utilities] = [UTILITY_NAME_GCOVR]
+    end
+
+    if @opts[:gcov_reports].nil?
+      @opts[:gcov_reports] = []
+    end
+
+    if is_utility_enabled(@opts, UTILITY_NAME_GCOVR)
+      @gcovr_reportinator.check_merge_coverages_enable
+    end
   end
+
 
   def generate_coverage_object_file(source, object)
     lib_args = @ceedling[:test_invoker].convert_libraries_to_arguments()
@@ -44,6 +66,7 @@ class Gcov < Plugin
         @ceedling[:file_path_utils].form_test_build_list_filepath(object),
         lib_args
       )
+    @gcovr_reportinator.generate_intermediate_coverage(source, object)
     @ceedling[:streaminator].stdout_puts("Compiling #{File.basename(source)} with coverage...")
     @ceedling[:tool_executor].exec(compile_command[:line], compile_command[:options])
   end
@@ -54,6 +77,8 @@ class Gcov < Plugin
     if (result_file =~ /#{GCOV_RESULTS_PATH}/) && !@result_list.include?(result_file)
       @result_list << arg_hash[:result_file]
     end
+
+    @gcovr_reportinator.post_test_fixture_execute
   end
 
   def post_build
@@ -89,35 +114,18 @@ class Gcov < Plugin
   end
 
   def generate_final_reports
-    # Get the gcov options from project.yml.
-    opts = @ceedling[:configurator].project_config_hash
-
     # Create the artifacts output directory.
     if !File.directory? GCOV_ARTIFACTS_PATH
       FileUtils.mkdir_p GCOV_ARTIFACTS_PATH
     end
 
-    # Remove unsupported reporting utilities.
-    if !(opts[:gcov_utilities].nil?)
-      opts[:gcov_utilities].reject! { |item| !(UTILITY_NAMES.map(&:upcase).include? item.upcase) }
+    if is_utility_enabled(@opts, UTILITY_NAME_GCOVR)
+      @gcovr_reportinator.support_deprecated_options(@opts)
+      @gcovr_reportinator.make_reports(@opts)
     end
 
-    # Default to gcovr when no reporting utilities are specified.
-    if opts[:gcov_utilities].nil? || opts[:gcov_utilities].empty?
-      opts[:gcov_utilities] = [UTILITY_NAME_GCOVR]
-    end
-
-    if opts[:gcov_reports].nil?
-      opts[:gcov_reports] = []
-    end
-
-    if is_utility_enabled(opts, UTILITY_NAME_GCOVR)
-      @gcovr_reportinator.support_deprecated_options(opts)
-      @gcovr_reportinator.make_reports(opts)
-    end
-
-    if is_utility_enabled(opts, UTILITY_NAME_REPORT_GENERATOR)
-      @reportgenerator_reportinator.make_reports(opts)
+    if is_utility_enabled(@opts, UTILITY_NAME_REPORT_GENERATOR)
+      @reportgenerator_reportinator.make_reports(@opts)
     end
   end
 
