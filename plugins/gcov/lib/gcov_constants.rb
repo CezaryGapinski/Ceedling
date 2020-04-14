@@ -17,6 +17,8 @@ GCOV_ARTIFACTS_FILE_JSON        = File.join(GCOV_ARTIFACTS_PATH, "GcovCoverage.j
 
 GCOV_FILTER_EXCLUDE_PATHS       = ['vendor', 'build', 'test', 'lib']
 
+GCOV_DATA_COUNT_EXTENSION       = '.gcda'
+
 # gcovr supports regular expressions.
 GCOV_FILTER_EXCLUDE = GCOV_FILTER_EXCLUDE_PATHS.map{|path| '^'.concat(*path).concat('.*')}.join('|')
 

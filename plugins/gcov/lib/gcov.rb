@@ -28,6 +28,9 @@ class Gcov < Plugin
     @coverage_template_all = @ceedling[:file_wrapper].read(File.join(@plugin_root, 'assets/template.erb'))
     @gcovr_reportinator = GcovrReportinator.new(@ceedling)
     @reportgenerator_reportinator = ReportGeneratorReportinator.new(@ceedling)
+
+    # Cleanup any existing gcov data count files to avoid reporting old coverage results.
+    Dir.glob("#{GCOV_BUILD_OUTPUT_PATH}/*#{GCOV_DATA_COUNT_EXTENSION}").each { |file| File.delete(file) }
   end
 
   def generate_coverage_object_file(source, object)
