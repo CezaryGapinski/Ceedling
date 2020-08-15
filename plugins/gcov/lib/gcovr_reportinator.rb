@@ -1,6 +1,7 @@
 require 'reportinator_helper'
 
 class GcovrReportinator
+  attr_reader :merge_coverages_enabled
 
   def initialize(system_objects)
     @ceedling = system_objects
@@ -30,6 +31,7 @@ class GcovrReportinator
         @intermediate_coverage_files << summary_file
 
         args += args_builder_add_tracefiles(@intermediate_coverage_files)
+        args_common = args
       end
       # gcovr version 4.2 and later supports generating multiple reports with a single call.
       args += args_builder_cobertura(opts, false)

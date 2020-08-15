@@ -97,7 +97,9 @@ class Gcov < Plugin
       message
     end
 
-    report_per_file_coverage_results(@ceedling[:test_invoker].sources)
+    if !@gcovr_reportinator.merge_coverages_enabled
+      report_per_file_coverage_results(@ceedling[:test_invoker].sources)
+    end
   end
 
   def summary

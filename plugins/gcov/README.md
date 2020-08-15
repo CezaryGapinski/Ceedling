@@ -351,6 +351,8 @@ default behaviors of gcovr:
     # data are lost and only the newest compilation is included in the final reports.
     # If this option is set to 'true' the intermediate coverages for recompiled 
     # files are combined into final coverage.
+    # When this option is enabled gcov text summary is disabled because shows
+    # wrong results. Use explicitly Text report in the reports section.
     :merge_coverages: false
 
   # When scanning the code coverage, if any files are found that do not have
