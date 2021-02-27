@@ -39,14 +39,14 @@ class Dependinator
 
   def enhance_runner_dependencies(runner_filepath)
     @rake_wrapper[runner_filepath].enhance( [@configurator.project_test_force_rebuild_filepath] ) if (@project_config_manager.test_config_changed ||
-      @project_config_manager.test_defines_changed)
+      @project_config_manager.test_defines_changed || @project_config_manager.extra_headers_changed)
   end
 
 
-  def enhance_shallow_include_lists_dependencies(include_lists)
+  def enhance_shallow_include_lists_dependencies(include_lists, force_enhance = false)
     include_lists.each do |include_list_filepath|
-      @rake_wrapper[include_list_filepath].enhance( [@configurator.project_test_force_rebuild_filepath] ) if (@project_config_manager.test_config_changed ||
-        @project_config_manager.test_defines_changed)
+      @rake_wrapper[include_list_filepath].enhance( [@configurator.project_test_force_rebuild_filepath] ) if (force_enhance || @project_config_manager.test_config_changed ||
+        @project_config_manager.test_defines_changed || @project_config_manager.extra_headers_changed)
     end
   end
 
@@ -54,7 +54,7 @@ class Dependinator
   def enhance_preprocesed_file_dependencies(files)
     files.each do |filepath|
       @rake_wrapper[filepath].enhance( [@configurator.project_test_force_rebuild_filepath] ) if (@project_config_manager.test_config_changed ||
-        @project_config_manager.test_defines_changed)
+        @project_config_manager.test_defines_changed || @project_config_manager.extra_headers_changed)
     end
   end
 
@@ -63,7 +63,7 @@ class Dependinator
     # if input configuration or ceedling changes, make sure these guys get rebuilt
     mocks_list.each do |mock_filepath|
       @rake_wrapper[mock_filepath].enhance( [@configurator.project_test_force_rebuild_filepath] ) if (@project_config_manager.test_config_changed ||
-        @project_config_manager.test_defines_changed)
+        @project_config_manager.test_defines_changed || @project_config_manager.extra_headers_changed)
       @rake_wrapper[mock_filepath].enhance( @configurator.cmock_unity_helper )                    if (@configurator.cmock_unity_helper)
     end
   end
@@ -72,7 +72,7 @@ class Dependinator
   def enhance_dependencies_dependencies(dependencies)
     dependencies.each do |dependencies_filepath|
       @rake_wrapper[dependencies_filepath].enhance( [@configurator.project_test_force_rebuild_filepath] ) if (@project_config_manager.test_config_changed ||
-        @project_config_manager.test_defines_changed)
+        @project_config_manager.test_defines_changed || @project_config_manager.extra_headers_changed)
     end
   end
 
@@ -80,7 +80,7 @@ class Dependinator
   def enhance_test_build_object_dependencies(objects)
     objects.each do |object_filepath|
       @rake_wrapper[object_filepath].enhance( [@configurator.project_test_force_rebuild_filepath] ) if (@project_config_manager.test_config_changed ||
-        @project_config_manager.test_defines_changed)
+        @project_config_manager.test_defines_changed || @project_config_manager.extra_headers_changed)
     end
   end
 

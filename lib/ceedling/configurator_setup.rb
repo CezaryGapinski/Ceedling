@@ -33,6 +33,7 @@ class ConfiguratorSetup
     flattened_config.merge!(@configurator_builder.collect_source_include_vendor_paths(flattened_config))
     flattened_config.merge!(@configurator_builder.collect_test_support_source_include_paths(flattened_config))
     flattened_config.merge!(@configurator_builder.collect_test_support_source_include_vendor_paths(flattened_config))
+    flattened_config.merge!(@configurator_builder.collect_test_extra_include_files(flattened_config))
     flattened_config.merge!(@configurator_builder.collect_tests(flattened_config))
     flattened_config.merge!(@configurator_builder.collect_assembly(flattened_config))
     flattened_config.merge!(@configurator_builder.collect_source(flattened_config))

@@ -117,6 +117,7 @@ class Configurator
 
     @runner_config = cmock.merge(@runner_config || config[:test_runner] || {})
 
+    @cmock_config = cmock
     @cmock_builder.manufacture(cmock)
   end
 
@@ -125,6 +126,10 @@ class Configurator
     @runner_config
   end
 
+
+  def get_cmock_config
+    @cmock_config
+  end
 
   # grab tool names from yaml and insert into tool structures so available for error messages
   # set up default values

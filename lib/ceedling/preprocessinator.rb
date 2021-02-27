@@ -37,10 +37,12 @@ class Preprocessinator
   end
 
   def preprocess_shallow_includes(filepath)
-    includes = @preprocessinator_includes_handler.extract_includes(filepath)
-
-    @preprocessinator_includes_handler.write_shallow_includes_list(
-      @file_path_utils.form_preprocessed_includes_list_filepath(filepath), includes)
+    shallow_includes = @preprocessinator_includes_handler.extract_includes(filepath)
+    @preprocessinator_includes_handler.write_includes_list(
+      @file_path_utils.form_preprocessed_includes_list_filepath(filepath), shallow_includes)
+    deep_includes = @preprocessinator_includes_handler.extract_file_includes(filepath)
+    @preprocessinator_includes_handler.write_includes_list(
+      @file_path_utils.form_preprocessed_deep_includes_list_filepath(filepath), deep_includes)
   end
 
   def preprocess_file(filepath)

@@ -38,6 +38,12 @@ class Cacheinator
     return @cacheinator_helper.diff_cached_defines?( cached_filepath, files )
   end
 
+  def diff_cached_extra_includes?(headers_list)
+    cached_filepath = @file_path_utils.form_test_build_cache_path(EXTRA_HEADERS_CACHE_FILE)
+
+    return @cacheinator_helper.diff_cached_extra_headers?( cached_filepath, headers_list )
+  end
+
   def diff_cached_release_config?(hash)
     cached_filepath = @file_path_utils.form_release_build_cache_path(INPUT_CONFIGURATION_CACHE_FILE)
 

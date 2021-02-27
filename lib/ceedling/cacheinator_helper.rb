@@ -32,4 +32,25 @@ class CacheinatorHelper
     return changed_defines
   end
 
+  def diff_cached_extra_headers?(cached_filepath, headers_list)
+    changed_headers = false
+
+    if not @file_wrapper.exist?(cached_filepath)
+      @yaml_wrapper.dump(cached_filepath, headers_list)
+      return changed_headers
+    end
+
+    dependencies = @yaml_wrapper.load(cached_filepath)
+    common_dependencies = headers_list.select { |file, headers| dependencies.has_key?(file) }
+
+    if dependencies.values_at(*common_dependencies.keys) != common_dependencies.values
+      changed_headers = true
+    end
+
+    dependencies.merge!(headers_list)
+    @yaml_wrapper.dump(cached_filepath, dependencies)
+
+    return changed_headers
+  end
+
 end

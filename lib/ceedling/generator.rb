@@ -6,6 +6,7 @@ class Generator
               :generator_helper,
               :preprocessinator,
               :cmock_builder,
+              :cmock_extra_headers,
               :generator_test_runner,
               :generator_test_results,
               :flaginator,
@@ -83,6 +84,7 @@ class Generator
     shell_result = {}
     arg_hash = {:tool => tool, :operation => operation, :context => context, :source => source, :object => object, :list => list, :dependencies => dependencies}
     @plugin_manager.pre_compile_execute(arg_hash)
+    @cmock_extra_headers.update_extra_headers( source )
 
     @streaminator.stdout_puts("Compiling #{File.basename(arg_hash[:source])}...", Verbosity::NORMAL)
     command =
@@ -103,6 +105,7 @@ class Generator
     ensure
       arg_hash[:shell_command] = command[:line]
       arg_hash[:shell_result] = shell_result
+      @cmock_extra_headers.recover_extra_headers
       @plugin_manager.post_compile_execute(arg_hash)
     end
   end

@@ -3,7 +3,7 @@ require 'ceedling/constants'
 
 class ProjectConfigManager
 
-  attr_reader   :options_files, :release_config_changed, :test_config_changed, :test_defines_changed
+  attr_reader   :options_files, :release_config_changed, :test_config_changed, :test_defines_changed, :extra_headers_changed
   attr_accessor :config_hash
 
   constructor :cacheinator, :configurator, :yaml_wrapper, :file_wrapper
@@ -14,6 +14,7 @@ class ProjectConfigManager
     @release_config_changed = false
     @test_config_changed    = false
     @test_defines_changed   = false
+    @extra_headers_changed  = false
   end
 
 
@@ -45,6 +46,15 @@ class ProjectConfigManager
     # has definitions changed since last test build
     @test_defines_changed = @cacheinator.diff_cached_test_defines?( files )
     if @test_defines_changed
+      # update timestamp for rake task prerequisites
+      @file_wrapper.touch( @configurator.project_test_force_rebuild_filepath, :mtime => Time.now + 10 )
+    end
+  end
+
+  def process_source_extra_headers_change(header_list)
+    # has extra headers changed since last test build
+    @extra_headers_changed = @cacheinator.diff_cached_extra_includes?( header_list )
+    if @extra_headers_changed
       # update timestamp for rake task prerequisites
       @file_wrapper.touch( @configurator.project_test_force_rebuild_filepath, :mtime => Time.now + 10 )
     end

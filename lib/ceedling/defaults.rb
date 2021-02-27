@@ -15,6 +15,7 @@ DEFAULT_TEST_COMPILER_TOOL = {
   :arguments => [
     ENV['CC'].nil? ? "" : ENV['CC'].split[1..-1],
     ENV['CPPFLAGS'].nil? ? "" : ENV['CPPFLAGS'].split,
+    {"-include\"$\"" => 'COLLECTION_TEST_EXTRA_INCLUDE_FILES'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE'}.freeze,
     {"-D$" => 'COLLECTION_DEFINES_TEST_AND_VENDOR'}.freeze,
@@ -72,6 +73,7 @@ DEFAULT_TEST_INCLUDES_PREPROCESSOR_TOOL = {
     # avoid some possibility of deep system lib header file complications by omitting vendor paths
     # if cpp is run on *nix system, escape spaces in paths; if cpp on windows just use the paths collection as is
     # {"-I\"$\"" => "{SystemWrapper.windows? ? COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE : COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE.map{|path| path.gsub(\/ \/, \'\\\\ \') }}"}.freeze,
+    {"-include\"$\"" => 'COLLECTION_TEST_EXTRA_INCLUDE_FILES'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE'}.freeze,
     {"-D$" => 'COLLECTION_DEFINES_TEST_AND_VENDOR'}.freeze,
@@ -92,6 +94,7 @@ DEFAULT_TEST_FILE_PREPROCESSOR_TOOL = {
     ENV['CC'].nil? ? "" : ENV['CC'].split[1..-1],
     ENV['CPPFLAGS'].nil? ? "" : ENV['CPPFLAGS'].split,
     '-E'.freeze,
+    {"-include\"$\"" => 'COLLECTION_TEST_EXTRA_INCLUDE_FILES'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE'}.freeze,
     {"-D$" => 'COLLECTION_DEFINES_TEST_AND_VENDOR'}.freeze,
@@ -111,6 +114,7 @@ DEFAULT_TEST_FILE_PREPROCESSOR_DIRECTIVES_TOOL = {
   :optional => false.freeze,
   :arguments => [
     '-E'.freeze,
+    {"-include\"$\"" => 'COLLECTION_TEST_EXTRA_INCLUDE_FILES'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE'}.freeze,
     {"-D$" => 'COLLECTION_DEFINES_TEST_AND_VENDOR'}.freeze,
@@ -140,6 +144,7 @@ DEFAULT_TEST_DEPENDENCIES_GENERATOR_TOOL = {
     ENV['CC'].nil? ? "" : ENV['CC'].split[1..-1],
     ENV['CPPFLAGS'].nil? ? "" : ENV['CPPFLAGS'].split,
     '-E'.freeze,
+    {"-include\"$\"" => 'COLLECTION_TEST_EXTRA_INCLUDE_FILES'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR'}.freeze,
     {"-I\"$\"" => 'COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE'}.freeze,
     {"-D$" => 'COLLECTION_DEFINES_TEST_AND_VENDOR'}.freeze,

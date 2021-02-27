@@ -46,31 +46,31 @@ class TaskInvoker
     return @rake_utils.task_invoked?(regex)
   end
 
-  def reset_rake_task_for_changed_defines(file)
+  def reenable_rake_task(file, force = false)
     if !(file =~ /#{VENDORS_FILES.map{|ignore| '\b' + ignore.ext(File.extname(file)) + '\b'}.join('|')}$/)
-      @rake_wrapper[file].clear_actions if @first_run == false && @project_config_manager.test_defines_changed
-      @rake_wrapper[file].reenable if @first_run == false && @project_config_manager.test_defines_changed
+      @rake_wrapper[file].clear_actions if @first_run == false && (force || @project_config_manager.test_defines_changed || @project_config_manager.extra_headers_changed)
+      @rake_wrapper[file].reenable if @first_run == false && (force ||@project_config_manager.test_defines_changed || @project_config_manager.extra_headers_changed)
     end
   end
 
   def invoke_test_mocks(mocks)
     @dependinator.enhance_mock_dependencies( mocks )
     mocks.each { |mock|
-      reset_rake_task_for_changed_defines( mock )
+      reenable_rake_task( mock )
       @rake_wrapper[mock].invoke
     }
   end
   
   def invoke_test_runner(runner)
     @dependinator.enhance_runner_dependencies( runner )
-    reset_rake_task_for_changed_defines( runner )
+    reenable_rake_task( runner )
     @rake_wrapper[runner].invoke
   end
 
-  def invoke_test_shallow_include_lists(files)
-    @dependinator.enhance_shallow_include_lists_dependencies( files )
+  def invoke_test_shallow_include_lists(files, force_invoke = false)
+    @dependinator.enhance_shallow_include_lists_dependencies( files, force_invoke )
     par_map(PROJECT_COMPILE_THREADS, files) do |file|
-      reset_rake_task_for_changed_defines( file )
+      reenable_rake_task( file, force_invoke )
       @rake_wrapper[file].invoke
     end
   end
@@ -78,7 +78,7 @@ class TaskInvoker
   def invoke_test_preprocessed_files(files)
     @dependinator.enhance_preprocesed_file_dependencies( files )
     par_map(PROJECT_COMPILE_THREADS, files) do |file|
-      reset_rake_task_for_changed_defines( file )
+      reenable_rake_task( file )
       @rake_wrapper[file].invoke
     end
   end
@@ -86,14 +86,14 @@ class TaskInvoker
   def invoke_test_dependencies_files(files)
     @dependinator.enhance_dependencies_dependencies( files )
     par_map(PROJECT_COMPILE_THREADS, files) do |file|
-      reset_rake_task_for_changed_defines( file )
+      reenable_rake_task( file )
       @rake_wrapper[file].invoke
     end
   end
 
   def invoke_test_objects(objects)
     par_map(PROJECT_COMPILE_THREADS, objects) do |object|
-      reset_rake_task_for_changed_defines( object )
+      reenable_rake_task( object )
       @rake_wrapper[object].invoke
     end
   end

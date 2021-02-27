@@ -7,8 +7,8 @@ class PreprocessinatorIncludesHandler
 
   # shallow includes: only those headers a source file explicitly includes
 
-  def invoke_shallow_includes_list(filepath)
-    @task_invoker.invoke_test_shallow_include_lists( [@file_path_utils.form_preprocessed_includes_list_filepath(filepath)] )
+  def invoke_shallow_includes_list(filepath, force_invoke = false)
+    @task_invoker.invoke_test_shallow_include_lists( [@file_path_utils.form_preprocessed_includes_list_filepath(filepath)], force_invoke )
   end
 
   ##
@@ -45,8 +45,14 @@ class PreprocessinatorIncludesHandler
 
     # extract the make-style dependency rule telling the preprocessor to
     # ignore the fact that it can't find the included files
+
+    # compilers search first in the current directory for headers
+    # to get correct headers dependency filepath directory must be added with the highest priority
+    paths_backup = Array.new(COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR)
+    COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR.unshift(@file_wrapper.dirname(filepath))
     command = @tool_executor.build_command_line(@configurator.tools_test_includes_preprocessor, [], temp_filepath)
     shell_result = @tool_executor.exec(command[:line], command[:options])
+    COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR.replace(paths_backup)
 
     @@makefile_cache[filepath] = shell_result[:output]
     return shell_result[:output]
@@ -88,13 +94,32 @@ class PreprocessinatorIncludesHandler
     return list
   end
 
+  ##
+  # Extract the headers that are directly and indirectly included by a source
+  # file using the provided, annotated Make dependency rule.
+  #
+  # === Arguments
+  # +filepath+ _String_:: C source or header file to extract includes for.
+  #
+  # === Return
+  # _Array_ of _String_:: Array of the dependencies for the source file.
+  def extract_file_includes(filepath)
+    make_rule = self.form_shallow_dependencies_rule(filepath)
+    make_rule_dependencies = remove_target_dependency(make_rule)
+
+    dependencies = make_rule_dependencies.split.uniq
+    dependencies.map! {|hdr| hdr.gsub('\\','/') }
+
+    aannotated_files, existing_files = dependencies.partition {|file| file =~ /^@@@@/}
+
+    return existing_files
+  end
+
   def extract_includes_helper(filepath, include_paths, ignore_list, mocks)
     # Extract the dependencies from the make rule
     make_rule = self.form_shallow_dependencies_rule(filepath)
-    target_file = make_rule.split[0].gsub(':', '').gsub('\\','/')
-    base = File.basename(target_file, File.extname(target_file))
-    make_rule_dependencies = make_rule.gsub(/.*\b#{Regexp.escape(base)}\S*/, '').gsub(/\\$/, '')
-    
+    make_rule_dependencies = make_rule_dependencies = remove_target_dependency(make_rule)
+
     # Extract the headers dependencies from the make rule
     hdr_ext = @configurator.extension_header
     headers_dependencies = make_rule_dependencies.split.find_all {|path| path.end_with?(hdr_ext) }.uniq
@@ -156,11 +181,17 @@ class PreprocessinatorIncludesHandler
 
   end
 
-  def write_shallow_includes_list(filepath, list)
+  def write_includes_list(filepath, list)
     @yaml_wrapper.dump(filepath, list)
   end
 
   private
+
+  def remove_target_dependency(make_rule)
+    target_file = make_rule.split[0].gsub(':', '').gsub('\\','/')
+    base = File.basename(target_file, File.extname(target_file))
+    return make_rule.gsub(/.*\b#{Regexp.escape(base)}\S*/, '').gsub(/\\$/, '')
+  end
 
   def extract_full_path_dependencies(dependencies)
     # Separate the real files form the annotated ones and remove the '@@@@'

@@ -109,6 +109,7 @@ class ConfiguratorBuilder
       [:project_temp_path,  File.join(in_hash[:project_build_root], 'temp'), true ],
 
       [:project_test_preprocess_includes_path,  File.join(project_build_tests_root, 'preprocess/includes'), in_hash[:project_use_test_preprocessor] ],
+      [:project_test_preprocess_deep_includes_path,  File.join(project_build_tests_root, 'preprocess/deep_includes'), in_hash[:project_use_test_preprocessor] ],
       [:project_test_preprocess_files_path,     File.join(project_build_tests_root, 'preprocess/files'),    in_hash[:project_use_test_preprocessor] ],
     ]
 
@@ -252,6 +253,14 @@ class ConfiguratorBuilder
       :collection_paths_test_support_source_include_vendor =>
         get_vendor_paths(in_hash) +
         in_hash[:collection_paths_test_support_source_include]
+      }
+  end
+
+
+  def collect_test_extra_include_files(in_hash)
+    #TODO add section in project.yml where some extra includes can be added
+    return {
+      :collection_test_extra_include_files => []
       }
   end
 

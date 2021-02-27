@@ -170,6 +170,10 @@ class FilePathUtils
     return File.join( @configurator.project_test_preprocess_includes_path, File.basename(filepath) )
   end
 
+  def form_preprocessed_deep_includes_list_filepath(filepath)
+    return File.join( @configurator.project_test_preprocess_deep_includes_path, File.basename(filepath) )
+  end
+
   def form_test_build_objects_filelist(sources)
     return (@file_wrapper.instantiate_file_list(sources)).pathmap("#{@configurator.project_test_build_output_c_path}/%n#{@configurator.extension_object}")
   end
@@ -186,6 +190,12 @@ class FilePathUtils
   def form_mocks_source_filelist(mocks)
     list = (@file_wrapper.instantiate_file_list(mocks))
     sources = list.map{|file| "#{@configurator.cmock_mock_path}/#{file}#{@configurator.extension_source}"}
+    return sources
+  end
+
+  def form_mocks_header_filelist(mocks)
+    list = (@file_wrapper.instantiate_file_list(mocks))
+    sources = list.map{|file| "#{@configurator.cmock_mock_path}/#{file}#{@configurator.extension_header}"}
     return sources
   end
 

@@ -64,6 +64,7 @@ DEFAULT_CEEDLING_USER_PROJECT_FILE = 'user.yml'    unless defined?(DEFAULT_CEEDL
 
 INPUT_CONFIGURATION_CACHE_FILE     = 'input.yml'   unless defined?(INPUT_CONFIGURATION_CACHE_FILE)     # input configuration file dump
 DEFINES_DEPENDENCY_CACHE_FILE      = 'defines_dependency.yml' unless defined?(DEFINES_DEPENDENCY_CACHE_FILE) # preprocessor definitions for files
+EXTRA_HEADERS_CACHE_FILE           = 'extra_headers_dependency.yml' unless defined?(EXTRA_HEADERS_CACHE_FILE) # extra headers for files
 
 TEST_ROOT_NAME    = 'test'                unless defined?(TEST_ROOT_NAME)
 TEST_TASK_ROOT    = TEST_ROOT_NAME + ':'  unless defined?(TEST_TASK_ROOT)

@@ -276,7 +276,7 @@ describe PreprocessinatorIncludesHandler do
       # mocks/stubs/expected calls
       expect(@yaml_wrapper).to receive(:dump).with('some_source_file.c', [])
       # execute method
-      subject.write_shallow_includes_list('some_source_file.c', [])
+      subject.write_includes_list('some_source_file.c', [])
       # validate results
     end
   end
