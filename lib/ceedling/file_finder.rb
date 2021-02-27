@@ -16,7 +16,7 @@ class FileFinder
   end
 
 
-  def find_header_file(mock_file)
+  def find_header_file_from_mock(mock_file)
     header = File.basename(mock_file).sub(/#{@configurator.cmock_mock_prefix}/, '').ext(@configurator.extension_header)
 
     found_path = @file_finder_helper.find_file_in_collection(header, @configurator.collection_all_headers, :error)
@@ -26,7 +26,7 @@ class FileFinder
 
 
   def find_header_input_for_mock_file(mock_file)
-    found_path = find_header_file(mock_file)
+    found_path = find_header_file_from_mock(mock_file)
     mock_input = found_path
 
     if (@configurator.project_use_test_preprocessor)
