@@ -197,6 +197,17 @@ describe "Ceedling" do
     it { can_test_projects_with_enabled_preprocessor_directives_with_success }
   end
 
+  describe "deployed with enabled header inlines in cmock" do
+    before do
+      @c.with_context do
+        `bundle exec ruby -S ceedling new --local #{@proj_name} 2>&1`
+      end
+    end
+
+    it { can_create_projects }
+    it { can_test_projects_with_enabled_cmock_treat_inlines_include_with_success }
+  end
+
   describe "command: `ceedling examples`" do
     before do
       @c.with_context do

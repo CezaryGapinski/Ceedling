@@ -340,6 +340,25 @@ module CeedlingTestCases
     end
   end
 
+  def can_test_projects_with_enabled_cmock_treat_inlines_include_with_success
+    @c.with_context do
+      Dir.chdir @proj_name do
+        FileUtils.copy_entry test_asset_path("inline_header_functions/src/"), 'src/'
+        FileUtils.cp_r test_asset_path("inline_header_functions/test/."), 'test/'
+        settings = { :cmock => { :treat_inlines => :include } }
+        add_project_settings("project.yml", settings)
+
+        output = `bundle exec ruby -S ceedling 2>&1`
+        expect($?.exitstatus).to match(0) # Since a test either pass or are ignored, we return success here
+        expect(output).to match(/TESTED:\s+\d/)
+        expect(output).to match(/PASSED:\s+\d/)
+        expect(output).to match(/FAILED:\s+\d/)
+        expect(output).to match(/IGNORED:\s+\d/)
+      end
+    end
+  end
+
+
   def can_test_projects_with_test_name_replaced_defines_with_success
     @c.with_context do
       Dir.chdir @proj_name do
